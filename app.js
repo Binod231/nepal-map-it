@@ -631,7 +631,7 @@ function buildCard(f) {
     </div>
   `;
 
-  card.addEventListener('click', () => selectFeature(f));
+  card.addEventListener('click', () => selectFeature(f, { flyTo: true }));
   return card;
 }
 
@@ -1004,21 +1004,52 @@ function selectFeatureById(id) {
   if (f) selectFeature(f);
 }
 
-function selectFeature(f) {
+function selectFeature(f, opts = {}) {
   state.selectedId = f.id;
   const [lng, lat] = f.geometry.coordinates;
-
   const isDesktop = window.innerWidth > 768;
-  state.map.easeTo({
-    center: [lng, lat],
-    zoom: Math.max(state.map.getZoom(), 16),
-    pitch: state.is3D ? 55 : 0,
-    padding: {
-      left: isDesktop ? 450 : 0,
-      bottom: isDesktop ? 0 : 340,
-    },
-    duration: 800,
-  });
+
+  // Google Maps behavior: only pan if the point is NOT already visible,
+  // or if the user explicitly requested fly-to (e.g. from sidebar card).
+  const panelPaddingPx = isDesktop ? 460 : 0;
+  const bottomPaddingPx = isDesktop ? 0 : 350;
+  const bounds = state.map.getBounds();
+  const mapContainer = state.map.getContainer();
+  const point = state.map.project([lng, lat]);
+  const w = mapContainer.clientWidth;
+  const h = mapContainer.clientHeight;
+
+  // Visible area = the map canvas minus the space the panel covers
+  const visLeft = panelPaddingPx;
+  const visRight = w - 40;
+  const visTop = 60;
+  const visBottom = h - bottomPaddingPx - 20;
+  const isVisible = point.x > visLeft && point.x < visRight &&
+                    point.y > visTop && point.y < visBottom;
+
+  if (opts.flyTo) {
+    // Explicit fly-to from sidebar card or Fly To button
+    state.map.flyTo({
+      center: [lng, lat],
+      zoom: Math.max(state.map.getZoom(), 16),
+      pitch: state.is3D ? 55 : 0,
+      padding: { left: isDesktop ? 450 : 0, bottom: bottomPaddingPx },
+      duration: 900,
+    });
+  } else if (!isVisible) {
+    // POI is off-screen or behind the panel — gentle ease, keep current zoom
+    state.map.easeTo({
+      center: [lng, lat],
+      padding: { left: isDesktop ? 450 : 0, bottom: bottomPaddingPx },
+      duration: 500,
+    });
+  } else {
+    // POI is already visible — just adjust padding so panel doesn't cover it
+    state.map.easeTo({
+      padding: { left: isDesktop ? 450 : 0, bottom: bottomPaddingPx },
+      duration: 300,
+    });
+  }
 
   // Update glowing selection pulse marker on map
   if (state.map && state.map.getSource('selected-poi-source')) {
@@ -1032,7 +1063,7 @@ function selectFeature(f) {
     c.classList.toggle('poi-card--active', c.dataset.id === f.id);
   });
 
-  hoverPopup(f);
+  closePopup();
   openPanel(f);
 }
 
@@ -1281,27 +1312,35 @@ function hoverPopup(f) {
   const p = f.properties;
   const meta = CATEGORY_META[p.category] || CATEGORY_META.heritage;
   const [lng, lat] = f.geometry.coordinates;
+  const details = getRichPoiDetails(f);
+  const stars = '★'.repeat(Math.round(details.rating)) + '☆'.repeat(5 - Math.round(details.rating));
+  const descSnippet = p.description ? esc(p.description).substring(0, 90) + (p.description.length > 90 ? '…' : '') : '';
 
   state.popup = new maplibregl.Popup({
     closeButton: false,
-    closeOnClick: false,
-    offset: 14,
-    maxWidth: '280px',
+    closeOnClick: true,
+    offset: [0, -12],
+    maxWidth: '300px',
+    className: 'gm-popup',
   })
     .setLngLat([lng, lat])
     .setHTML(`
-      <div class="pu">
-        <div class="pu__head">
-          <span class="pu__icon">${meta.icon}</span>
-          <div>
-            <div class="pu__name">${esc(p.name)}</div>
-            <div class="pu__loc">📍 ${esc(p.city)}, Nepal</div>
-          </div>
+      <div class="pu" onclick="window.selectFeatureById('${f.id}')">
+        <div class="pu__hero" style="background:linear-gradient(135deg, ${meta.color}30, transparent)">
+          <span class="pu__hero-icon">${meta.icon}</span>
         </div>
-        <p class="pu__desc">${esc(p.description)}</p>
-        <div class="pu__foot">
-          <span style="color:var(--c-text-muted)">${meta.label}</span>
-          <button class="pu__btn" onclick="window.selectFeatureById('${f.id}')">Inspect →</button>
+        <div class="pu__body">
+          <div class="pu__name">${esc(p.name)}</div>
+          <div class="pu__rating">
+            <span class="pu__stars" style="color:${meta.color}">${stars}</span>
+            <span class="pu__score">${details.rating}</span>
+          </div>
+          <div class="pu__loc">📍 ${esc(p.city)}, Nepal</div>
+          ${descSnippet ? `<p class="pu__desc">${descSnippet}</p>` : ''}
+          <div class="pu__foot">
+            <span class="pu__cat" style="color:${meta.color}">${meta.label}</span>
+            <span class="pu__action">View details ›</span>
+          </div>
         </div>
       </div>
     `)

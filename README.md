@@ -167,10 +167,20 @@ map-it/
 ├── data/
 │   ├── nepal_poi.json  # Curated GeoJSON dataset (2,821 real POIs)
 │   └── nepal_poi.js    # Zero-CORS offline-ready dataset bundle
+├── blog/
+│   └── disaster-alerting-pipeline.md # In-depth technical architecture whitepaper
 ├── fetch_real_data.py  # Automated Overpass API ingestion pipeline
 ├── package.json        # Dev scripts & dependencies
 └── README.md           # Documentation & Architecture Guide
 ```
+
+---
+
+## 📖 Technical Deep Dive & Whitepaper
+
+Check out the comprehensive, production-grade architecture article:
+👉 **[Building a Disaster Alerting Pipeline on AWS: Ingestion, Geofencing, and Delivery When Networks Fail](./blog/disaster-alerting-pipeline.md)**
+- **Topics:** Multi-source hazard ingestion (USGS, DHM, IoT Core), OASIS CAP 1.2 normalization, Uber H3 geospatial targeting, AWS End User Messaging (SMS/WhatsApp), multi-region failover (Mumbai/Singapore), complete AWS CDK v2 TypeScript stack, and honest cost analysis.
 
 ---
 
@@ -179,9 +189,12 @@ map-it/
 | Service | Role |
 |---------|------|
 | **Amazon Location Service** | Interactive map tiles + geocoding (Place Index) |
-| **Amazon S3** | Static website hosting + data storage |
+| **Amazon S3** | Static website hosting + data storage & CAP audit logs |
 | **Apache Iceberg on S3** | Production table format for POI data |
 | **Amazon Athena** | SQL queries over S3/Iceberg data |
+| **Amazon EventBridge** | Real-time hazard event bus & multi-region global endpoints |
+| **Amazon DynamoDB** | Fast H3 spatial lookup & idempotent delivery dedup |
+| **AWS End User Messaging** | Direct SMS / WhatsApp emergency alerting |
 
 
 

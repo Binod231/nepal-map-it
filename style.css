@@ -1890,53 +1890,92 @@ input, select {
   box-shadow: var(--sh-md);
 }
 
-/* ── POPUP STYLING ────────────────────────────────────────────────────────── */
+/* ── MAP POPUP (Google Maps Mini Info Card) ────────────────────────────────── */
 .maplibregl-popup-content {
-  background: rgba(15, 21, 37, 0.96) !important;
-  border: 1px solid var(--c-border-hover) !important;
-  border-radius: var(--r-lg) !important;
-  backdrop-filter: blur(20px) !important;
-  box-shadow: var(--sh-lg) !important;
-  padding: 12px 14px !important;
+  background: rgba(15, 21, 37, 0.97) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255,255,255,0.05) !important;
+  padding: 0 !important;
   color: var(--c-text) !important;
   font-family: var(--font-ui) !important;
+  overflow: hidden;
 }
 
 .maplibregl-popup-tip {
-  border-top-color: rgba(15, 21, 37, 0.96) !important;
+  border-top-color: rgba(15, 21, 37, 0.97) !important;
+}
+
+.gm-popup .maplibregl-popup-content {
+  min-width: 240px;
 }
 
 .pu {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.pu__head {
+.pu:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pu__hero {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  height: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.pu__icon {
-  font-size: 18px;
+.pu__hero-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.pu__body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .pu__name {
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   color: #fff;
+  line-height: 1.3;
+}
+
+.pu__rating {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+}
+
+.pu__stars {
+  letter-spacing: 1px;
+  font-size: 0.7rem;
+}
+
+.pu__score {
+  color: var(--c-text-sub);
+  font-weight: 600;
 }
 
 .pu__loc {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--c-text-sub);
+  margin-top: 1px;
 }
 
 .pu__desc {
-  font-size: 0.74rem;
-  color: var(--c-text-sub);
+  font-size: 0.72rem;
+  color: var(--c-text-muted);
   line-height: 1.4;
+  margin: 3px 0 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1948,17 +1987,27 @@ input, select {
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding-top: 5px;
+  padding-top: 8px;
+  margin-top: 6px;
   font-size: 0.7rem;
 }
 
-.pu__btn {
-  padding: 3px 8px;
-  background: linear-gradient(135deg, var(--c-gold), var(--c-orange));
-  color: #000;
-  border-radius: var(--r-full);
-  font-weight: 700;
-  font-size: 0.7rem;
+.pu__cat {
+  font-weight: 600;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pu__action {
+  color: #93C5FD;
+  font-weight: 600;
+  font-size: 0.72rem;
+  transition: color 0.15s;
+}
+
+.pu:hover .pu__action {
+  color: #BFDBFE;
 }
 
 /* ── ANIMATIONS ───────────────────────────────────────────────────────────── */
