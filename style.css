@@ -1418,8 +1418,15 @@ input, select {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
-  padding-bottom: 12px;
+  padding: 10px 0 12px;
+  position: sticky;
+  top: -16px;
+  z-index: 10;
+  background: rgba(18, 24, 38, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--c-border);
+  margin-top: -6px;
 }
 
 .dp__action-pill {
