@@ -1,0 +1,16 @@
+{
+  "name": "nepal-mapit",
+  "version": "1.0.0",
+  "description": "Nepal MapIt – Interactive map of Kathmandu & Pokhara POIs using Amazon Location Service",
+  "keywords": ["nepal", "kathmandu", "pokhara", "aws", "amazon-location-service", "maplibre", "tourism"],
+  "scripts": {
+    "dev":   "python3 -m http.server 8080",
+    "start": "python3 -m http.server 8080",
+    "serve": "npx serve . -p 8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/binodprasadjoshi/map-it"
+  },
+  "license": "MIT"
+}

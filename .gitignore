@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS & IDE metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Temp files
+*.tmp
+/tmp/

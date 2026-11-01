@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>Nepal MapIt – Explore 2,870+ Real Places in Kathmandu &amp; Pokhara</title>
+  <meta name="description" content="Explore 2,876 real OpenStreetMap points of interest across Kathmandu and Pokhara, Nepal. UNESCO Heritage sites, sacred temples, panoramic viewpoints, lakes, and food hotspots powered by Amazon Location Service & MapLibre GL JS." />
+  <meta name="keywords" content="Nepal Map, Kathmandu, Pokhara, Himalaya, temples, UNESCO heritage, viewpoints, tourism, AWS Amazon Location Service, Apache Iceberg, OpenStreetMap" />
+  <meta name="author" content="Nepal MapIt" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Nepal MapIt – Interactive Kathmandu &amp; Pokhara Spatial Explorer" />
+  <meta property="og:description" content="2,876 real points of interest with clustering, heatmaps, distance routing, and geocoding powered by Amazon Location Service." />
+  <meta property="og:type" content="website" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>" />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- MapLibre GL JS (Amazon Location Service compatible) -->
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════ LOADING OVERLAY ═══════════════════════════ -->
+<div id="loading" role="status" aria-live="polite">
+  <div class="loading__box">
+    <div class="loading__icon-wrap">
+      <div class="loading__pulse"></div>
+      <div class="loading__logo">🗺️</div>
+    </div>
+    <h2 class="loading__title">Nepal MapIt</h2>
+    <div class="loading__spinner" aria-hidden="true"></div>
+    <div class="loading__text">Initializing Amazon Location Service &amp; 2,876 OSM POIs…</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ APP ROOT ═══════════════════════════════ -->
+<div id="app">
+
+  <!-- ── HEADER ── -->
+  <header id="header" role="banner">
+
+    <div class="header-left">
+      <div class="logo" aria-label="Nepal MapIt" title="Nepal MapIt – Kathmandu & Pokhara Spatial Explorer">
+        <div class="logo__icon" aria-hidden="true">🇳🇵</div>
+        <div class="logo__meta">
+          <span class="logo__text">Nepal MapIt</span>
+          <span class="logo__badge">Kathmandu &amp; Pokhara</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Search Bar -->
+    <div class="search-wrap" role="search">
+      <span class="search-wrap__icon" aria-hidden="true">🔍</span>
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Search 2,876 temples, stupas, lakes, viewpoints… (Press ⌘K or /)"
+        autocomplete="off"
+        aria-label="Search Nepal locations"
+      />
+      <button id="search-clear" class="search-clear-btn" aria-label="Clear search" title="Clear">✕</button>
+      <div class="search-kbd" aria-hidden="true">⌘K</div>
+      <div id="search-results" role="listbox" aria-label="Search suggestions"></div>
+    </div>
+
+    <!-- Header Controls -->
+    <div class="header-right">
+
+      <!-- Visualization Mode Toggle (Clusters / Pins / Heatmap) -->
+      <div class="segmented-control" role="group" aria-label="Map Layer Mode">
+        <button id="mode-cluster" class="seg-btn seg-btn--active" title="Clustered points for fast navigation">
+          🫧 Clusters
+        </button>
+        <button id="mode-pins" class="seg-btn" title="Individual categorized pins">
+          📍 Pins
+        </button>
+        <button id="mode-heat" class="seg-btn" title="Density heatmap of sacred & tourism spots">
+          🔥 Heatmap
+        </button>
+      </div>
+
+
+
+      <!-- Spatial Route & Distance Tool -->
+      <button id="btn-route-tool" class="hbtn hbtn--accent"
+        title="View Kathmandu ↔ Pokhara Prithvi Highway corridor & distance calculator"
+        aria-label="Corridor Distance & Routing Tool">
+        <span class="hbtn__icon">📏</span>
+        <span class="hbtn__label">Highway Corridor</span>
+      </button>
+
+      <!-- Geocode Search -->
+      <button id="btn-geocode" class="hbtn"
+        title="Geocode any Nepal address using Amazon Location Service"
+        aria-label="Address Geocoder">
+        <span class="hbtn__icon">📍</span>
+      </button>
+
+      <!-- AWS Architecture Info Modal Trigger -->
+      <button id="btn-aws-info" class="hbtn"
+        title="View AWS Spatial & Data Pipeline Architecture (Location Service, S3 Iceberg, Athena)"
+        aria-label="AWS Architecture Details">
+        <span class="hbtn__icon">☁️</span>
+      </button>
+
+      <!-- GitHub Source -->
+      <a href="https://github.com/binodprasadjoshi/map-it" target="_blank" rel="noopener"
+        class="hbtn" title="Source code on GitHub" aria-label="View Source on GitHub">
+        <span class="hbtn__icon">⌨️</span>
+      </a>
+
+      <!-- Live Data Counter Pill -->
+      <div class="pill pill--live" title="Verified live dataset from Overpass API (OSM)">
+        <span class="pulse-dot"></span>
+        <span id="header-poi-count">2,821 POIs</span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ── MAIN WORKSPACE ── -->
+  <main id="main" role="main">
+
+    <!-- ── SIDEBAR ── -->
+    <aside id="sidebar" aria-label="Location filters and list">
+
+      <!-- Region Switcher -->
+      <div class="sb-section">
+        <div class="sb-label">
+          <span>🇳🇵 Regional Focus</span>
+          <span id="sb-region-count" class="sb-badge">2,821 spots</span>
+        </div>
+        <nav class="city-pills" aria-label="Filter by region">
+          <button class="city-pill city-pill--active" data-city="all" aria-pressed="true">
+            <span class="city-pill__icon">🇳🇵</span>
+            <span class="city-pill__title">All Nepal</span>
+            <span class="city-pill__count">2,821</span>
+          </button>
+          <button class="city-pill" data-city="Kathmandu" aria-pressed="false">
+            <span class="city-pill__icon">🏛️</span>
+            <span class="city-pill__title">Kathmandu</span>
+            <span class="city-pill__count">2,272</span>
+          </button>
+          <button class="city-pill" data-city="Pokhara" aria-pressed="false">
+            <span class="city-pill__icon">🏔️</span>
+            <span class="city-pill__title">Pokhara</span>
+            <span class="city-pill__count">549</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Quick Curated Presets Bar -->
+      <div class="sb-section sb-section--compact">
+        <div class="sb-label">
+          <span>⚡ Quick Discoveries</span>
+        </div>
+        <div class="curated-chips" role="group" aria-label="Curated preset filters">
+          <button class="curated-chip" data-preset="unesco" title="UNESCO World Heritage Sites">
+            🏛️ UNESCO Heritage
+          </button>
+          <button class="curated-chip" data-preset="temples" title="Sacred Hindu & Buddhist Temples">
+            ⛩️ Sacred Temples
+          </button>
+          <button class="curated-chip" data-preset="viewpoints" title="Himalayan Sunrises & Panoramas">
+            🌅 Scenic Viewpoints
+          </button>
+          <button class="curated-chip" data-preset="lakes" title="Lakes, Waterfalls & Reserves">
+            🌿 Lakes &amp; Nature
+          </button>
+          <button class="curated-chip" data-preset="food" title="Thamel & Lakeside Cafes">
+            🍽️ Food &amp; Cafes
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Filter Grid -->
+      <div class="sb-section" aria-label="Filter by category">
+        <div class="sb-label sb-label--with-actions">
+          <span>📂 Categories</span>
+          <div class="sb-actions">
+            <button id="cat-select-all" class="text-btn">All</button>
+            <span class="sep">·</span>
+            <button id="cat-clear-all" class="text-btn">None</button>
+          </div>
+        </div>
+        <div id="cat-grid" role="group" aria-label="Category toggles">
+          <!-- Populated by app.js with dynamic counts -->
+        </div>
+      </div>
+
+      <!-- Sort & Filter Count Bar -->
+      <div class="sb-bar">
+        <span id="count-label" aria-live="polite" aria-atomic="true">
+          Showing <strong>2,821</strong> locations
+        </span>
+        <div class="sb-sort-wrap">
+          <select id="sort-select" aria-label="Sort locations by">
+            <option value="highlights" selected>⭐ Top Highlights</option>
+            <option value="name">🔤 Name (A→Z)</option>
+            <option value="elevation">🏔️ High Elevation</option>
+            <option value="city_ktm">🏛️ Kathmandu First</option>
+            <option value="city_pkr">🏔️ Pokhara First</option>
+            <option value="category">📂 By Category</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- POI List Container with Infinite Scroll -->
+      <div id="poi-list" role="list" aria-label="Points of interest list"></div>
+      <div id="poi-list-footer" class="poi-list-footer">
+        <button id="btn-load-more" class="load-more-btn">Load More Locations</button>
+      </div>
+
+    </aside>
+
+    <!-- ── MAP CONTAINER ── -->
+    <div id="map-wrap" aria-label="Interactive Nepal map">
+
+      <!-- Mobile Sidebar Toggle -->
+      <button id="btn-sidebar" class="floating-btn mobile-menu-btn" aria-label="Toggle sidebar filters" title="Toggle filters">
+        ☰
+      </button>
+
+      <!-- Map Canvas -->
+      <div id="map" role="application" aria-label="Interactive Map of Nepal POIs"></div>
+
+      <!-- Floating Highway Route & Distance Banner (Toggled via button) -->
+      <div id="route-card" class="floating-card route-card" role="region" aria-label="Highway corridor info">
+        <div class="route-card__header">
+          <div class="route-card__title">
+            <span>🛣️ Prithvi Highway Corridor</span>
+            <span class="route-badge">KTM ↔ PKR</span>
+          </div>
+          <button id="btn-close-route" class="card-close-btn" aria-label="Hide route overlay">✕</button>
+        </div>
+        <div class="route-card__body">
+          <div class="route-metric">
+            <span class="route-metric__val">204 km</span>
+            <span class="route-metric__lbl">Direct Distance</span>
+          </div>
+          <div class="route-metric">
+            <span class="route-metric__val">~6 hrs</span>
+            <span class="route-metric__lbl">Scenic Drive</span>
+          </div>
+          <div class="route-metric">
+            <span class="route-metric__val">25 min</span>
+            <span class="route-metric__lbl">Domestic Flight</span>
+          </div>
+        </div>
+        <div class="route-card__desc">
+          Key transit arterial connecting Bagmati &amp; Gandaki provinces along Trishuli &amp; Marsyangdi river valleys.
+        </div>
+      </div>
+
+      <!-- Geocoding Search Dialog -->
+      <div id="geocode-panel" role="dialog" aria-label="Address geocoder" aria-modal="true">
+        <div class="gp__header">
+          <span class="gp__icon">📍</span>
+          <span class="gp__title">Amazon Location Service Geocoder</span>
+          <button id="btn-geocode-close" class="card-close-btn" aria-label="Close geocoder">✕</button>
+        </div>
+        <div class="gp__input-wrap">
+          <input id="geocode-input" type="text"
+            placeholder="Search address (e.g., 'Thamel Kathmandu', 'Phewa Lake Pokhara')…"
+            aria-label="Address to locate" />
+          <button id="btn-geocode-go" class="gp__go-btn" aria-label="Locate address">Search</button>
+        </div>
+        <div class="gp__hint">Powered by Amazon Location Service Place Index with Nominatim fallback</div>
+      </div>
+
+      <!-- Floating Quick Map Navigation -->
+      <nav class="map-nav" aria-label="Map camera controls">
+        <div class="map-nav__group">
+          <button id="btn-nepal" class="map-nav__btn" title="Fit Entire Nepal Bounds" aria-label="Zoom to Nepal">
+            🇳🇵
+          </button>
+        </div>
+        <div class="map-nav__group">
+          <button id="btn-ktm" class="map-nav__btn" title="Fly to Kathmandu Valley (2,327 POIs)" aria-label="Go to Kathmandu">
+            🏙️
+          </button>
+          <button id="btn-pkr" class="map-nav__btn" title="Fly to Pokhara Valley (549 POIs)" aria-label="Go to Pokhara">
+            🏔️
+          </button>
+        </div>
+        <div class="map-nav__group">
+          <button id="btn-theme" class="map-nav__btn" title="Toggle AWS Map Basemap (Dark Canvas ↔ Light Navigation)" aria-label="Toggle AWS Map Style">
+            🌓
+          </button>
+          <button id="btn-tilt" class="map-nav__btn" title="Toggle 3D Himalayan Valley Pitch (60°)" aria-label="Toggle 3D View">
+            🛰️
+          </button>
+          <button id="btn-locate" class="map-nav__btn" title="Find My Location (GPS)" aria-label="Locate My Position">
+            🎯
+          </button>
+        </div>
+      </nav>
+
+      <!-- Floating Stats Widget -->
+      <div id="stats-widget" aria-label="Dataset spatial statistics">
+        <div class="sw__item">
+          <div class="sw__val" id="stat-total">2,876</div>
+          <div class="sw__lbl">Total POIs</div>
+        </div>
+        <div class="sw__divider"></div>
+        <div class="sw__item">
+          <div class="sw__val" id="stat-heritage">2,072</div>
+          <div class="sw__lbl">Heritage &amp; Sacred</div>
+        </div>
+        <div class="sw__divider"></div>
+        <div class="sw__item">
+          <div class="sw__val" id="stat-nature">271</div>
+          <div class="sw__lbl">Viewpoints &amp; Nature</div>
+        </div>
+        <div class="sw__divider"></div>
+        <div class="sw__item">
+          <div class="sw__val" id="stat-dining">488</div>
+          <div class="sw__lbl">Food &amp; Cafes</div>
+        </div>
+      </div>
+
+      <!-- Data & Map Attribution Bar -->
+      <div id="attr-bar" role="contentinfo" aria-label="Data attribution">
+        <span>Data: <strong id="attr-source">OpenStreetMap contributors</strong> (ODbL)</span>
+        <span>·</span>
+        <span>Map: <strong id="attr-map">Amazon Location Service (MapLibre GL)</strong></span>
+        <span>·</span>
+        <span><a href="#" id="attr-pipeline-link">Architecture Specs ☁️</a></span>
+      </div>
+
+    </div><!-- /map-wrap -->
+
+    <!-- ── DETAIL PANEL ── -->
+    <aside id="detail-panel" role="complementary" aria-label="Location detail" aria-expanded="false">
+
+      <div class="dp__hero" id="dp-hero">
+        <div class="dp__hero-overlay"></div>
+        <button id="dp-close" class="dp__close" aria-label="Close detail panel">✕</button>
+        <div class="dp__hero-content">
+          <div class="dp__top-row">
+            <span class="dp__badge"></span>
+            <span class="dp__city-badge"></span>
+          </div>
+          <h1 class="dp__title">Click any marker or card</h1>
+          <div class="dp__coords" id="dp-coords"></div>
+        </div>
+      </div>
+
+      <div class="dp__body">
+
+        <!-- Action Buttons -->
+        <div class="dp__actions">
+          <button id="dp-btn-maps" class="dp__btn dp__btn--primary" title="Open Google Maps directions">
+            📍 Directions
+          </button>
+          <button id="dp-btn-fly" class="dp__btn dp__btn--secondary" title="Fly directly to this spot">
+            ✈️ Fly Here
+          </button>
+          <button id="dp-btn-copy" class="dp__btn dp__btn--secondary" title="Copy latitude & longitude">
+            📋 Copy Coords
+          </button>
+          <button id="dp-btn-osm" class="dp__btn dp__btn--secondary" title="Inspect OSM Node">
+            🗺️ OSM Node
+          </button>
+        </div>
+
+        <!-- Description -->
+        <div class="dp__section">
+          <div class="dp__section-title"><span>📝</span> Description</div>
+          <p class="dp__desc"></p>
+        </div>
+
+        <!-- Meta info chips -->
+        <div class="dp__section">
+          <div class="dp__section-title"><span>ℹ️</span> Location Details</div>
+          <div class="dp__chips"></div>
+        </div>
+
+        <!-- Tags -->
+        <div class="dp__section">
+          <div class="dp__section-title"><span>🏷️</span> Classification &amp; Tags</div>
+          <div class="dp__tags"></div>
+        </div>
+
+        <!-- AWS Architecture Flow Card -->
+        <div class="dp__section">
+          <div class="dp__section-title"><span>☁️</span> AWS Data Architecture Flow</div>
+          <div class="dp__pipeline">
+            <div class="pipe-step">
+              <span class="pipe-step__num">1</span>
+              <div>
+                <strong>Ingestion:</strong> Overpass API extracts real OSM nodes for Kathmandu &amp; Pokhara
+              </div>
+            </div>
+            <div class="pipe-step">
+              <span class="pipe-step__num">2</span>
+              <div>
+                <strong>Storage:</strong> Stored in <strong>Amazon S3</strong> with <strong>Apache Iceberg</strong> table format
+              </div>
+            </div>
+            <div class="pipe-step">
+              <span class="pipe-step__num">3</span>
+              <div>
+                <strong>Query Engine:</strong> Serverless SQL spatial queries via <strong>Amazon Athena</strong>
+              </div>
+            </div>
+            <div class="pipe-step">
+              <span class="pipe-step__num">4</span>
+              <div>
+                <strong>Mapping:</strong> Vector tiles &amp; Places Index rendered via <strong>Amazon Location Service</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dp__attribution"></div>
+
+      </div>
+    </aside>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════ AWS ARCHITECTURE MODAL ═══════════════════════════ -->
+<div id="aws-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <span class="modal-icon">☁️</span>
+        <h2 id="modal-title" class="modal-title">AWS Spatial &amp; Data Pipeline Architecture</h2>
+      </div>
+      <button id="modal-close" class="card-close-btn" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-lead">
+        Nepal MapIt demonstrates an end-to-end cloud spatial architecture conforming to AWS Best Practices for modern location applications:
+      </p>
+
+      <div class="arch-grid">
+        <div class="arch-box">
+          <div class="arch-box__head">
+            <span>🗺️</span> <strong>Amazon Location Service</strong>
+          </div>
+          <p>Provides vector map rendering styles, Place Index geocoding for Nepal addresses, and reverse-geocoding coordinates.</p>
+        </div>
+        <div class="arch-box">
+          <div class="arch-box__head">
+            <span>🗄️</span> <strong>Amazon S3 + Apache Iceberg</strong>
+          </div>
+          <p>Scalable storage tier holding spatial GeoJSON features structured in Apache Iceberg table format for schema evolution and partition pruning.</p>
+        </div>
+        <div class="arch-box">
+          <div class="arch-box__head">
+            <span>⚡</span> <strong>Amazon Athena</strong>
+          </div>
+          <p>Serverless SQL queries over Iceberg tables on S3, filtering 2,876+ features by bounding box, city, and category tags with sub-second performance.</p>
+        </div>
+        <div class="arch-box">
+          <div class="arch-box__head">
+            <span>🚀</span> <strong>AWS Amplify / S3 Website</strong>
+          </div>
+          <p>Zero-cold-start edge delivery of static assets with global CDN caching and automatic HTTPS security.</p>
+        </div>
+      </div>
+
+      <div class="arch-code-wrap">
+        <div class="arch-code-title">Amazon Location Service Configuration (`app.js`):</div>
+        <pre><code>const AWS_CONFIG = {
+  region:      'us-east-1',
+  mapName:     'nepal-mapit-map',    // Amazon Location Service map resource
+  placesIndex: 'nepal-mapit-places', // Amazon Location Service place index
+  apiKey:      'v1.public.ey...',    // API Key authentication
+};</code></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Feedback Container -->
+<div id="toasts" aria-live="assertive" aria-atomic="false"></div>
+
+<!-- Scripts -->
+<script src="data/nepal_poi.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
