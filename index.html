@@ -183,6 +183,9 @@
           <button class="curated-chip" data-preset="food" title="Thamel & Lakeside Cafes">
             🍽️ Food &amp; Cafes
           </button>
+          <button class="curated-chip" data-preset="saved" id="chip-saved" title="My Saved Favorite Places">
+            🔖 Saved (<span id="saved-chip-count">0</span>)
+          </button>
         </div>
       </div>
 
@@ -281,7 +284,7 @@
         <div class="gp__hint">Powered by Amazon Location Service Place Index with Nominatim fallback</div>
       </div>
 
-      <!-- Floating Quick Map Navigation -->
+      <!-- Floating Quick Map Navigation (Google Maps Style) -->
       <nav class="map-nav" aria-label="Map camera controls">
         <div class="map-nav__group">
           <button id="btn-nepal" class="map-nav__btn" title="Fit Entire Nepal Bounds" aria-label="Zoom to Nepal">
@@ -289,7 +292,7 @@
           </button>
         </div>
         <div class="map-nav__group">
-          <button id="btn-ktm" class="map-nav__btn" title="Fly to Kathmandu Valley (2,327 POIs)" aria-label="Go to Kathmandu">
+          <button id="btn-ktm" class="map-nav__btn" title="Fly to Kathmandu Valley (2,272 POIs)" aria-label="Go to Kathmandu">
             🏙️
           </button>
           <button id="btn-pkr" class="map-nav__btn" title="Fly to Pokhara Valley (549 POIs)" aria-label="Go to Pokhara">
@@ -297,7 +300,7 @@
           </button>
         </div>
         <div class="map-nav__group">
-          <button id="btn-theme" class="map-nav__btn" title="Toggle AWS Map Basemap (Dark Canvas ↔ Light Navigation)" aria-label="Toggle AWS Map Style">
+          <button id="btn-theme" class="map-nav__btn" title="Toggle AWS Map Basemap (Light Navigation ↔ Dark Canvas)" aria-label="Toggle AWS Map Style">
             🌓
           </button>
           <button id="btn-tilt" class="map-nav__btn" title="Toggle 3D Himalayan Valley Pitch (60°)" aria-label="Toggle 3D View">
@@ -305,6 +308,17 @@
           </button>
           <button id="btn-locate" class="map-nav__btn" title="Find My Location (GPS)" aria-label="Locate My Position">
             🎯
+          </button>
+        </div>
+        <div class="map-nav__group">
+          <button id="btn-zoom-in" class="map-nav__btn" title="Zoom In" aria-label="Zoom In">
+            ➕
+          </button>
+          <button id="btn-zoom-out" class="map-nav__btn" title="Zoom Out" aria-label="Zoom Out">
+            ➖
+          </button>
+          <button id="btn-compass" class="map-nav__btn" title="Reset North Bearing" aria-label="Reset North">
+            🧭
           </button>
         </div>
       </nav>
@@ -343,53 +357,96 @@
 
     </div><!-- /map-wrap -->
 
-    <!-- ── DETAIL PANEL ── -->
-    <aside id="detail-panel" role="complementary" aria-label="Location detail" aria-expanded="false">
+    <!-- ── GOOGLE MAPS STYLE PLACE CARD (DETAIL PANEL) ── -->
+    <aside id="detail-panel" class="google-place-card" role="complementary" aria-label="Location detail" aria-expanded="false">
 
       <div class="dp__hero" id="dp-hero">
         <div class="dp__hero-overlay"></div>
-        <button id="dp-close" class="dp__close" aria-label="Close detail panel">✕</button>
+        <button id="dp-close" class="dp__close" aria-label="Close place card" title="Close place card">✕</button>
         <div class="dp__hero-content">
           <div class="dp__top-row">
             <span class="dp__badge"></span>
             <span class="dp__city-badge"></span>
+            <span class="dp__verified-badge">✓ Verified OSM</span>
           </div>
-          <h1 class="dp__title">Click any marker or card</h1>
-          <div class="dp__coords" id="dp-coords"></div>
+          <h1 class="dp__title">Select a Destination</h1>
+          <div class="dp__subtitle" id="dp-subtitle"></div>
+
+          <!-- Google Maps Rating & Status Snippet -->
+          <div class="dp__rating-bar" id="dp-rating-bar">
+            <div class="dp__stars">★★★★★</div>
+            <span class="dp__score" id="dp-score">4.9</span>
+            <span class="dp__review-count" id="dp-review-count">(Prominence: High)</span>
+            <span class="dp__bullet">·</span>
+            <span class="dp__status-badge" id="dp-status-badge">
+              <span class="status-indicator"></span>
+              <span id="dp-status-text">Open</span>
+            </span>
+          </div>
         </div>
       </div>
 
       <div class="dp__body">
 
-        <!-- Action Buttons -->
-        <div class="dp__actions">
-          <button id="dp-btn-maps" class="dp__btn dp__btn--primary" title="Open Google Maps directions">
-            📍 Directions
+        <!-- Google Maps Signature Action Pills -->
+        <div class="dp__actions-row">
+          <button id="dp-btn-maps" class="dp__action-pill dp__action-pill--primary" title="Open Google Maps turn-by-turn directions">
+            <span class="action-icon">↗</span>
+            <span class="action-label">Directions</span>
           </button>
-          <button id="dp-btn-fly" class="dp__btn dp__btn--secondary" title="Fly directly to this spot">
-            ✈️ Fly Here
+          <button id="dp-btn-save" class="dp__action-pill" title="Save this place to favorites">
+            <span class="action-icon" id="dp-save-icon">🔖</span>
+            <span class="action-label" id="dp-save-label">Save</span>
           </button>
-          <button id="dp-btn-copy" class="dp__btn dp__btn--secondary" title="Copy latitude & longitude">
-            📋 Copy Coords
+          <button id="dp-btn-nearby" class="dp__action-pill" title="Find nearby places in this neighborhood">
+            <span class="action-icon">📍</span>
+            <span class="action-label">Nearby</span>
           </button>
-          <button id="dp-btn-osm" class="dp__btn dp__btn--secondary" title="Inspect OSM Node">
-            🗺️ OSM Node
+          <button id="dp-btn-share" class="dp__action-pill" title="Copy shareable link">
+            <span class="action-icon">🔗</span>
+            <span class="action-label">Share</span>
+          </button>
+          <button id="dp-btn-fly" class="dp__action-pill" title="Fly directly to this spot">
+            <span class="action-icon">✈️</span>
+            <span class="action-label">Fly To</span>
           </button>
         </div>
 
-        <!-- Description -->
+        <!-- Google Maps Quick Facts & Information List -->
+        <div class="dp__quick-facts" id="dp-quick-facts">
+          <!-- Dynamically populated with icons, labels, and formatted values -->
+        </div>
+
+        <!-- Comprehensive Narrative (About Section) -->
         <div class="dp__section">
-          <div class="dp__section-title"><span>📝</span> Description</div>
-          <p class="dp__desc"></p>
+          <div class="dp__section-title">
+            <span>📖</span>
+            <span>About This Destination</span>
+          </div>
+          <div class="dp__narrative" id="dp-narrative">
+            <p class="dp__desc"></p>
+          </div>
         </div>
 
-        <!-- Meta info chips -->
-        <div class="dp__section">
-          <div class="dp__section-title"><span>ℹ️</span> Location Details</div>
-          <div class="dp__chips"></div>
+        <!-- Distances & City Transit -->
+        <div class="dp__section" id="dp-transit-section">
+          <div class="dp__section-title">
+            <span>🧭</span>
+            <span>Transit &amp; City Distances</span>
+          </div>
+          <div class="dp__transit-grid" id="dp-transit-grid"></div>
         </div>
 
-        <!-- Tags -->
+        <!-- Nearby Recommendations ("People Also Explore") -->
+        <div class="dp__section" id="dp-nearby-section">
+          <div class="dp__section-title">
+            <span>👥</span>
+            <span>Nearby in this Neighborhood</span>
+          </div>
+          <div class="dp__nearby-list" id="dp-nearby-list"></div>
+        </div>
+
+        <!-- Tags & Classification -->
         <div class="dp__section">
           <div class="dp__section-title"><span>🏷️</span> Classification &amp; Tags</div>
           <div class="dp__tags"></div>
@@ -397,18 +454,18 @@
 
         <!-- AWS Architecture Flow Card -->
         <div class="dp__section">
-          <div class="dp__section-title"><span>☁️</span> AWS Data Architecture Flow</div>
+          <div class="dp__section-title"><span>☁️</span> AWS Spatial Data Pipeline</div>
           <div class="dp__pipeline">
             <div class="pipe-step">
               <span class="pipe-step__num">1</span>
               <div>
-                <strong>Ingestion:</strong> Overpass API extracts real OSM nodes for Kathmandu &amp; Pokhara
+                <strong>Ingestion:</strong> Overpass API extracts real OpenStreetMap nodes for Kathmandu &amp; Pokhara
               </div>
             </div>
             <div class="pipe-step">
               <span class="pipe-step__num">2</span>
               <div>
-                <strong>Storage:</strong> Stored in <strong>Amazon S3</strong> with <strong>Apache Iceberg</strong> table format
+                <strong>Storage Lakehouse:</strong> Stored in <strong>Amazon S3</strong> with <strong>Apache Iceberg</strong> table format
               </div>
             </div>
             <div class="pipe-step">

@@ -165,9 +165,11 @@ map-it/
 ├── style.css           # Dark-mode design system (CSS Variables + animations)
 ├── app.js              # Application logic (map, filters, search, geocoding)
 ├── data/
-│   └── nepal_poi.json  # GeoJSON dataset (52 features)
-├── package.json        # Dev serve scripts
-└── README.md           # This file
+│   ├── nepal_poi.json  # Curated GeoJSON dataset (2,821 real POIs)
+│   └── nepal_poi.js    # Zero-CORS offline-ready dataset bundle
+├── fetch_real_data.py  # Automated Overpass API ingestion pipeline
+├── package.json        # Dev scripts & dependencies
+└── README.md           # Documentation & Architecture Guide
 ```
 
 ---
@@ -181,38 +183,7 @@ map-it/
 | **Apache Iceberg on S3** | Production table format for POI data |
 | **Amazon Athena** | SQL queries over S3/Iceberg data |
 
----
 
-## 📋 Hackathon Submission Details
-
-**Challenge**: Devpost Map-It Hackathon (AWS Location & Spatial Data)
-
-**Dataset**: Real OpenStreetMap POI dataset queried via Overpass API — **2,876 GeoJSON features** across Kathmandu Valley and Pokhara, Nepal. No mock data is used. Features include real coordinates, names, descriptions, heritage classifications, religious denominations, and verified tags.
-
-**How it works**:
-1. Spatial data is fetched and formatted into GeoJSON via [`fetch_real_data.py`](./fetch_real_data.py)
-2. In AWS production architecture, data is ingested into **Amazon S3** in **Apache Iceberg** table format and queried with **Amazon Athena**
-3. [Amazon Location Service](https://aws.amazon.com/location/) provides map styles, tiles, and Place Index geocoding
-4. **MapLibre GL JS** renders the vector map with color-coded category markers, search, smooth camera fly-to, and interactive detail panel
-
-**What people can explore**:
-- UNESCO World Heritage Sites (Pashupatinath, Boudhanath, Swayambhunath, Durbar Squares)
-- Thousands of Buddhist and Hindu temples, stupas, and shrines
-- Scenic viewpoints: Nagarkot, Sarangkot, World Peace Pagoda, Kahun Danda
-- Natural treasures: Phewa Lake, Begnas Lake, Davis Falls, Gupteshwor Cave, Shivapuri National Park
-- Authentic food, cafes, and restaurants across Thamel and Lakeside Pokhara
-- Full-text search and address geocoding to locate any address in Nepal on the map
-
----
-
-## 🙏 Credits
-
-- **Map tiles**: Amazon Location Service / OpenFreeMap (local fallback)
-- **Dataset**: OpenStreetMap contributors, Open Database License (ODbL)
-- **Map rendering**: MapLibre GL JS
-- **Map rendering**: MapLibre GL JS
-
----
 
 ## 📝 License
 
