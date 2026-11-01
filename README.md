@@ -167,20 +167,10 @@ map-it/
 ├── data/
 │   ├── nepal_poi.json  # Curated GeoJSON dataset (2,821 real POIs)
 │   └── nepal_poi.js    # Zero-CORS offline-ready dataset bundle
-├── blog/
-│   └── disaster-alerting-pipeline.md # In-depth technical architecture whitepaper
 ├── fetch_real_data.py  # Automated Overpass API ingestion pipeline
 ├── package.json        # Dev scripts & dependencies
 └── README.md           # Documentation & Architecture Guide
 ```
-
----
-
-## 📖 Technical Deep Dive & Whitepaper
-
-Check out the comprehensive, production-grade architecture article:
-👉 **[Building a Disaster Alerting Pipeline on AWS: Ingestion, Geofencing, and Delivery When Networks Fail](./blog/disaster-alerting-pipeline.md)**
-- **Topics:** Multi-source hazard ingestion (USGS, DHM, IoT Core), OASIS CAP 1.2 normalization, Uber H3 geospatial targeting, AWS End User Messaging (SMS/WhatsApp), multi-region failover (Mumbai/Singapore), complete AWS CDK v2 TypeScript stack, and honest cost analysis.
 
 ---
 
